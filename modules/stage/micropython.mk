@@ -1,0 +1,3 @@
+STAGE_MOD_DIR := $(USERMOD_DIR)
+
+SRC_USERMOD += $(STAGE_MOD_DIR)/mod_stage.c

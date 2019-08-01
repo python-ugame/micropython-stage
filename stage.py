@@ -199,7 +199,7 @@ class Bank:
 
 
 class Grid:
-    def __init__(self, bank, width, height, palette=None, buffer=None):
+    def __init__(self, bank, width=8, height=8, palette=None, buffer=None):
         self.x = 0
         self.y = 0
         self.z = 0

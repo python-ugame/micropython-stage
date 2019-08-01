@@ -348,12 +348,15 @@ class Text:
 class Stage:
     buffer = bytearray(512)
 
-    def __init__(self, display, fps=6, scale=1):
-        self.scale = scale
+    def __init__(self, display, fps=6, scale=None):
+        if scale is None:
+            self.scale = max(1, display.width // 128)
+        else:
+            self.scale = scale
         self.layers = []
         self.display = display
-        self.width = display.width // scale
-        self.height = display.height // scale
+        self.width = display.width // self.scale
+        self.height = display.height // self.scale
         self.last_tick = utime.ticks_ms()
         self.tick_delay = 1000 // fps
 

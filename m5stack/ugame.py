@@ -8,11 +8,13 @@ import ili9341
 
 
 K_X = 0x20
-K_DOWN = 0x01
-K_LEFT = 0x08
-K_RIGHT = 0x04
-K_UP = 0x02
+K_DOWN = 0x02
+K_LEFT = 0x04
+K_RIGHT = 0x08
+K_UP = 0x01
 K_O = 0x10
+K_SELECT = 0x40
+K_START = 0x80
 
 
 class Audio:
@@ -30,12 +32,12 @@ class Audio:
 
 
 class Buttons:
-    def __init__(self, i2c, address=0x10):
+    def __init__(self, i2c, address=0x08):
         self._i2c = i2c
         self._address = address
 
     def get_pressed(self):
-        return self._i2c.readfrom(self._address, 1)[0]
+        return self._i2c.readfrom(self._address, 1)[0] ^ 0xff
 
 
 spi = SPI(2, baudrate=40000000, sck=Pin(18), mosi=Pin(23))

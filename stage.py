@@ -1,5 +1,6 @@
 import utime
 import array
+import struct
 import _stage
 
 
@@ -167,18 +168,154 @@ class BMP16:
                 palette[color] = (c << 8) | (c >> 8)
         return palette
 
-    def read_data(self, offset=0, buffer=None):
+    def read_data(self, buffer=None):
         line_size = self.width >> 1
         if buffer is None:
             buffer = bytearray(line_size * self.height)
 
         with open(self.filename, 'rb') as f:
-            f.seek(self.data + offset)
+            f.seek(self.data)
             index = (self.height - 1) * line_size
             for line in range(self.height):
                 chunk = f.read(line_size)
                 buffer[index:index + line_size] = chunk
                 index -= line_size
+        return buffer
+
+
+def read_blockstream(f):
+    while True:
+        size = f.read(1)[0]
+        if size == 0:
+            break
+        for i in range(size):
+            yield f.read(1)[0]
+
+
+class EndOfData(Exception):
+    pass
+
+
+class LZWDict:
+    def __init__(self, code_size):
+        self.code_size = code_size
+        self.clear_code = 1 << code_size
+        self.end_code = self.clear_code + 1
+        self.codes = []
+        self.clear()
+
+    def clear(self):
+        self.last = b''
+        self.code_len = self.code_size + 1
+        self.codes[:] = []
+
+    def decode(self, code):
+        if code == self.clear_code:
+            self.clear()
+            return b''
+        elif code == self.end_code:
+            raise EndOfData()
+        elif code < self.clear_code:
+            value = bytes([code])
+        elif code <= len(self.codes) + self.end_code:
+            value = self.codes[code - self.end_code - 1]
+        else:
+            value = self.last + self.last[0:1]
+        if self.last:
+            self.codes.append(self.last + value[0:1])
+        if (len(self.codes) + self.end_code + 1 >= 1 << self.code_len and
+            self.code_len < 12):
+                self.code_len += 1
+        self.last = value
+        return value
+
+
+def lzw_decode(data, code_size):
+    dictionary = LZWDict(code_size)
+    bit = 0
+    try:
+        byte = next(data)
+        try:
+            while True:
+                code = 0
+                for i in range(dictionary.code_len):
+                    code |= ((byte >> bit) & 0x01) << i
+                    bit += 1
+                    if bit >= 8:
+                        bit = 0
+                        byte = next(data)
+                yield dictionary.decode(code)
+        except EndOfData:
+            while True:
+                next(data)
+    except StopIteration:
+        return
+
+
+class GIF16:
+    def __init__(self, filename):
+        self.filename = filename
+
+    def read_header(self):
+        with open(self.filename, 'rb') as f:
+            header = f.read(6)
+            if header not in {b'GIF87a', b'GIF89a'}:
+                raise ValueError("Not GIF file")
+            self.width, self.height, flags, self.background, self.aspect = (
+                struct.unpack('<HHBBB', f.read(7)))
+            self.palette_size = 1 << ((flags & 0x07) + 1)
+        if not flags & 0x80 or self.palette_size > 16:
+            raise ValueError("16-color GIF expected")
+
+    def read_palette(self):
+        palette = array.array('H', (0 for i in range(16)))
+        with open(self.filename, 'rb') as f:
+            f.seek(13)
+            for color in range(self.palette_size):
+                buffer = f.read(3)
+                c = color565(buffer[2], buffer[1], buffer[0])
+                palette[color] = (c << 8) | (c >> 8)
+        return palette
+
+    def read_data(self, buffer=None):
+        line_size = self.width >> 1
+        if buffer is None:
+            buffer = bytearray(line_size * self.height)
+        with open(self.filename, 'rb') as f:
+            f.seek(13 + self.palette_size * 3)
+            while True: # skip to first frame
+                block_type = f.read(1)[0]
+                if block_type == 0x2c:
+                    break
+                elif block_type == 0x21: # skip extension
+                    extension_type = f.read(1)[0]
+                    while True:
+                        size = f.read(1)[0]
+                        if size == 0:
+                            break
+                        f.seek(1, size)
+                elif block_type == 0x3b:
+                    raise ValueError("no frames")
+            x, y, w, h, flags = struct.unpack('<HHHHB', f.read(9))
+            if flags & 0x80:
+                raise ValueError("local palette")
+            if flags & 0x40:
+                raise ValueError("interlaced")
+            if w != self.width or h != self.height or x != 0 or y != 0:
+                raise ValueError("partial frame")
+            min_code_size = f.read(1)[0]
+            x = 0
+            y = 0
+            for decoded in lzw_decode(read_blockstream(f), min_code_size):
+                for pixel in decoded:
+                    if x & 0x01:
+                        buffer[(x >> 1) + y * line_size] |= pixel
+                    else:
+                        buffer[(x >> 1) + y * line_size] = pixel << 4
+                    x += 1
+                    if (x >= self.width):
+                        x = 0
+                        y += 1
         return buffer
 
 
@@ -192,9 +329,19 @@ class Bank:
         bmp = BMP16(filename)
         bmp.read_header()
         if bmp.width != 16 or bmp.height != 256:
-            raise ValueError("bitmap size not 16x256")
+            raise ValueError("image size not 16x256")
         palette = bmp.read_palette()
-        buffer = bmp.read_data(0)
+        buffer = bmp.read_data()
+        return cls(buffer, palette)
+
+    @classmethod
+    def from_gif16(cls, filename):
+        gif = GIF16(filename)
+        gif.read_header()
+        if gif.width != 16 or gif.height != 256:
+            raise ValueError("image size not 16x256")
+        palette = gif.read_palette()
+        buffer = gif.read_data()
         return cls(buffer, palette)
 
 

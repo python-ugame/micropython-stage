@@ -348,11 +348,12 @@ class Text:
 class Stage:
     buffer = bytearray(512)
 
-    def __init__(self, display, fps=6):
+    def __init__(self, display, fps=6, scale=1):
+        self.scale = scale
         self.layers = []
         self.display = display
-        self.width = display.width
-        self.height = display.height
+        self.width = display.width // scale
+        self.height = display.height // scale
         self.last_tick = utime.ticks_ms()
         self.tick_delay = 1000 // fps
 
@@ -371,8 +372,10 @@ class Stage:
             y1 = self.height
         layers = [l.layer for l in self.layers]
         with self.display as display:
-            display.block(x0, y0, x1 - 1, y1 - 1)
-            _stage.render(x0, y0, x1, y1, layers, self.buffer, display.spi)
+            display.block(x0 * self.scale, y0 * self.scale,
+                          x1 * self.scale - 1, y1 * self.scale - 1)
+            _stage.render(x0, y0, x1, y1, layers, self.buffer,
+                          display.spi, self.scale)
 
     def render_sprites(self, sprites):
         layers = [l.layer for l in self.layers]
@@ -388,6 +391,8 @@ class Stage:
                                 max(sprite.py, int(sprite.y)) + 16))
                 if x0 == x1 or y0 == y1:
                     continue
-                display.block(x0, y0, x1 - 1, y1 - 1)
-                _stage.render(x0, y0, x1, y1, layers, self.buffer, display.spi)
+                display.block(x0 * self.scale, y0 * self.scale,
+                              x1 * self.scale - 1, y1 * self.scale - 1)
+                _stage.render(x0, y0, x1, y1, layers, self.buffer,
+                              display.spi, self.scale)
                 sprite._updated()

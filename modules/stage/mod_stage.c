@@ -302,7 +302,7 @@ inline
 void render_stage(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
         mp_obj_t *layers, size_t layers_size,
         uint16_t *buffer, size_t buffer_size,
-        mp_obj_t spi) {
+        mp_obj_t spi, uint8_t scale) {
 
     // TODO(deshipu): Do a collision check of each layer with the
     // rectangle, and only process the layers that overlap with it.
@@ -312,26 +312,30 @@ void render_stage(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
 
     size_t index = 0;
     for (uint16_t y = y0; y < y1; ++y) {
-        for (uint16_t x = x0; x < x1; ++x) {
-            for (size_t layer = 0; layer < layers_size; ++layer) {
+        for (uint8_t yscale = 0; yscale < scale; ++yscale) {
+            for (uint16_t x = x0; x < x1; ++x) {
                 uint16_t c = TRANSPARENT;
-                layer_obj_t *obj = MP_OBJ_TO_PTR(layers[layer]);
-                if (obj->base.type == &mp_type_layer) {
-                    c = get_layer_pixel(obj, x, y);
-                } else if (obj->base.type == &mp_type_text) {
-                    c = get_text_pixel((text_obj_t *)obj, x, y);
+                for (size_t layer = 0; layer < layers_size; ++layer) {
+                    layer_obj_t *obj = MP_OBJ_TO_PTR(layers[layer]);
+                    if (obj->base.type == &mp_type_layer) {
+                        c = get_layer_pixel(obj, x, y);
+                    } else if (obj->base.type == &mp_type_text) {
+                        c = get_text_pixel((text_obj_t *)obj, x, y);
+                    }
+                    if (c != TRANSPARENT) {
+                        break;
+                    }
                 }
-                if (c != TRANSPARENT) {
+                for (uint8_t xscale = 0; xscale < scale; ++xscale) {
                     buffer[index] = c;
-                    break;
+                    index += 1;
+                    // The buffer is full, send it.
+                    if (index >= buffer_size) {
+                        spi_p->transfer(s, buffer_size * 2,
+                                        (const uint8_t*)buffer, NULL);
+                        index = 0;
+                    }
                 }
-            }
-            index += 1;
-            // The buffer is full, send it.
-            if (index >= buffer_size) {
-                spi_p->transfer(s, buffer_size * 2,
-                                (const uint8_t*)buffer, NULL);
-                index = 0;
             }
         }
     }
@@ -363,12 +367,17 @@ STATIC mp_obj_t stage_render(size_t n_args, const mp_obj_t *args) {
     if (type->protocol == NULL) {
          mp_raise_ValueError("SPI protocol required");
     }
+    uint8_t scale = 1;
+    if (n_args >= 8) {
+        scale = mp_obj_get_int(args[7]);
+    }
 
-    render_stage(x0, y0, x1, y1, layers, layers_size, buffer, buffer_size, spi);
+    render_stage(x0, y0, x1, y1, layers, layers_size,
+                 buffer, buffer_size, spi, scale);
 
     return mp_const_none;
 }
-MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(stage_render_obj, 7, 7, stage_render);
+MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(stage_render_obj, 7, 8, stage_render);
 
 
 STATIC const mp_rom_map_elem_t stage_module_globals_table[] = {

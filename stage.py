@@ -389,8 +389,8 @@ class WallGrid(Grid):
         self.move(self.x - 8, self.y - 8)
 
     def update(self):
-        for y in range(9):
-            for x in range(9):
+        for y in range(self.height):
+            for x in range(self.width):
                 t = 0
                 bit = 1
                 for dy in (-1, 0):

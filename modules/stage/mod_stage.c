@@ -1,6 +1,4 @@
 /*
- * This file is part of the MicroPython project, http://micropython.org/
- *
  * The MIT License (MIT)
  *
  * Copyright (c) 2018 Radomir Dopieralski
@@ -213,6 +211,7 @@ STATIC mp_obj_t text_move(mp_obj_t self_in, mp_obj_t x_in, mp_obj_t y_in) {
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(text_move_obj, text_move);
 
 
+#if !MICROPY_ENABLE_DYNRUNTIME
 STATIC const mp_rom_map_elem_t text_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_move), MP_ROM_PTR(&text_move_obj) },
 };
@@ -224,6 +223,9 @@ const mp_obj_type_t mp_type_text = {
     .make_new = text_make_new,
     .locals_dict = (mp_obj_dict_t*)&text_locals_dict,
 };
+#else
+extern mp_obj_type_t mp_type_text;
+#endif
 
 
 STATIC mp_obj_t layer_make_new(const mp_obj_type_t *type, size_t n_args,
@@ -285,6 +287,7 @@ STATIC mp_obj_t layer_frame(mp_obj_t self_in, mp_obj_t frame_in,
 STATIC MP_DEFINE_CONST_FUN_OBJ_3(layer_frame_obj, layer_frame);
 
 
+#if !MICROPY_ENABLE_DYNRUNTIME
 STATIC const mp_rom_map_elem_t layer_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_move), MP_ROM_PTR(&layer_move_obj) },
     { MP_ROM_QSTR(MP_QSTR_frame), MP_ROM_PTR(&layer_frame_obj) },
@@ -297,6 +300,9 @@ const mp_obj_type_t mp_type_layer = {
     .make_new = layer_make_new,
     .locals_dict = (mp_obj_dict_t*)&layer_locals_dict,
 };
+#else
+extern mp_obj_type_t mp_type_layer;
+#endif
 
 inline
 void render_stage(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
@@ -380,6 +386,7 @@ STATIC mp_obj_t stage_render(size_t n_args, const mp_obj_t *args) {
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(stage_render_obj, 7, 8, stage_render);
 
 
+#if !MICROPY_ENABLE_DYNRUNTIME
 STATIC const mp_rom_map_elem_t stage_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR__stage) },
     { MP_ROM_QSTR(MP_QSTR_Layer), MP_ROM_PTR(&mp_type_layer) },
@@ -395,3 +402,4 @@ const mp_obj_module_t mp_module__stage = {
 };
 
 MP_REGISTER_MODULE(MP_QSTR__stage, mp_module__stage, MODULE_STAGE_ENABLED);
+#endif

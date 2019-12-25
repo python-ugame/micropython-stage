@@ -23,8 +23,9 @@
  */
 
 #define MICROPY_ENABLE_DYNRUNTIME (1)
-#include "py/dynruntime.h"
 
+
+#include "py/dynruntime.h"
 #include "../modules/stage/mod_stage.c"
 
 

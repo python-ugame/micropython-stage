@@ -360,7 +360,11 @@ STATIC mp_obj_t stage_render(size_t n_args, const mp_obj_t *args) {
 
     size_t layers_size = 0;
     mp_obj_t *layers;
+#if !MICROPY_ENABLE_DYNRUNTIME
     mp_obj_get_array(args[4], &layers_size, &layers);
+#else
+    mp_fun_table.mp_obj_get_array(args[4], &layers_size, &layers);
+#endif
 
     mp_buffer_info_t bufinfo;
     mp_get_buffer_raise(args[5], &bufinfo, MP_BUFFER_WRITE);
@@ -369,7 +373,7 @@ STATIC mp_obj_t stage_render(size_t n_args, const mp_obj_t *args) {
 
     mp_obj_t spi = args[6];
     // TODO: Make sure it's an SPI object.
-    mp_obj_type_t *type = mp_obj_get_type(spi);
+    const mp_obj_type_t *type = mp_obj_get_type(spi);
     if (type->protocol == NULL) {
          mp_raise_ValueError("SPI protocol required");
     }

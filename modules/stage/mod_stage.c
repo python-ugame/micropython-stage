@@ -184,19 +184,19 @@ STATIC mp_obj_t text_make_new(const mp_obj_type_t *type, size_t n_args,
     mp_get_buffer_raise(args[2], &bufinfo, MP_BUFFER_READ);
     self->font = bufinfo.buf;
     if (bufinfo.len != 2048) {
-        mp_raise_ValueError("font must be 2048 bytes long");
+        mp_raise_ValueError(MP_ERROR_TEXT("font must be 2048 bytes long"));
     }
 
     mp_get_buffer_raise(args[3], &bufinfo, MP_BUFFER_READ);
     self->palette = bufinfo.buf;
     if (bufinfo.len != 32) {
-        mp_raise_ValueError("palette must be 32 bytes long");
+        mp_raise_ValueError(MP_ERROR_TEXT("palette must be 32 bytes long"));
     }
 
     mp_get_buffer_raise(args[4], &bufinfo, MP_BUFFER_READ);
     self->chars = bufinfo.buf;
     if (bufinfo.len < self->width * self->height) {
-        mp_raise_ValueError("chars buffer too small");
+        mp_raise_ValueError(MP_ERROR_TEXT("chars buffer too small"));
     }
 
     return MP_OBJ_FROM_PTR(self);
@@ -246,20 +246,20 @@ STATIC mp_obj_t layer_make_new(const mp_obj_type_t *type, size_t n_args,
     mp_get_buffer_raise(args[2], &bufinfo, MP_BUFFER_READ);
     self->graphic = bufinfo.buf;
     if (bufinfo.len != 2048) {
-        mp_raise_ValueError("graphic must be 2048 bytes long");
+        mp_raise_ValueError(MP_ERROR_TEXT("graphic must be 2048 bytes long"));
     }
 
     mp_get_buffer_raise(args[3], &bufinfo, MP_BUFFER_READ);
     self->palette = bufinfo.buf;
     if (bufinfo.len != 32) {
-        mp_raise_ValueError("palette must be 32 bytes long");
+        mp_raise_ValueError(MP_ERROR_TEXT("palette must be 32 bytes long"));
     }
 
     if (n_args > 4) {
         mp_get_buffer_raise(args[4], &bufinfo, MP_BUFFER_READ);
         self->map = bufinfo.buf;
         if (bufinfo.len < (self->width * self->height) / 2) {
-            mp_raise_ValueError("map buffer too small");
+            mp_raise_ValueError(MP_ERROR_TEXT("map buffer too small"));
         }
     } else {
         self-> map = NULL;
@@ -375,7 +375,7 @@ STATIC mp_obj_t stage_render(size_t n_args, const mp_obj_t *args) {
     // TODO: Make sure it's an SPI object.
     const mp_obj_type_t *type = mp_obj_get_type(spi);
     if (type->protocol == NULL) {
-         mp_raise_ValueError("SPI protocol required");
+         mp_raise_ValueError(MP_ERROR_TEXT("SPI protocol required"));
     }
     uint8_t scale = 1;
     if (n_args >= 8) {

@@ -28,7 +28,7 @@ platforms. You should freeze the files for the platform you target into your
 firmware.
 
 Example::
-    make USER_C_MODULES=../../../micropython-stage/modules CFLAGS_EXTRA=-DMODULE_STAGE_ENABLE FROZEN_MPY_DIR=../../../micropython-stage/m5stack
+    make USER_C_MODULES=../../../micropython-stage/modules CFLAGS_EXTRA=-DMODULE_STAGE_ENABLED=1 FROZEN_MPY_DIR=../../../micropython-stage/m5stack
 
 
 Compiling Modules

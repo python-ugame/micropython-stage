@@ -43,7 +43,7 @@ class Buttons: # mpr121
         ):
             self._i2c.writeto_mem(self._address, register, value)
 
-    def _get_pressed(self):
+    def get_pressed(self):
         return int.from_bytes(
             self._i2c.readfrom_mem(self._address, 0x00, 2), 'big')
 

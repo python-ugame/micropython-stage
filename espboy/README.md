@@ -1,0 +1,1 @@
+make USER_C_MODULES=../../../micropython-stage/modules CFLAGS_EXTRA=-DMODULE_STAGE_ENABLED=1 FROZEN_MANIFEST=../../../micropython-stage/espboy/manifest.py PORT=/dev/ttyUSB0 FLASH_MODE=dio FLASH_SIZE=4m erase clean deploy

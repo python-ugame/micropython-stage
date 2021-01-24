@@ -46,7 +46,7 @@ class Buttons: # mpr121
 
     def get_pressed(self):
         buffer = self._i2c.readfrom_mem(self._address, 0x00, 2)
-        mask = struct.unpack('<H', buffer)[0]
+        mask = struct.unpack('>H', buffer)[0]
         return mask
 
 

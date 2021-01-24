@@ -518,8 +518,16 @@ class Stage:
     def render_block(self, x0=0, y0=0, x1=None, y1=None):
         if x1 is None:
             x1 = self.width
+        else:
+            x1 = min(max(1, x1), self.width)
         if y1 is None:
             y1 = self.height
+        else:
+            y1 = min(max(1, y1), self.height)
+        x0 = min(max(0, x0), self.width - 1)
+        y0 = min(max(0, y0), self.height - 1)
+        if x0 >= x1 or y0 >= y1:
+            return
         layers = [l.layer for l in self.layers]
         with self.display as display:
             display.block(x0 * self.scale, y0 * self.scale,
@@ -539,7 +547,7 @@ class Stage:
                                 max(sprite.px, int(sprite.x)) + 16))
                 y1 = max(1, min(self.height,
                                 max(sprite.py, int(sprite.y)) + 16))
-                if x0 == x1 or y0 == y1:
+                if x0 >= x1 or y0 >= y1:
                     continue
                 display.block(x0 * self.scale, y0 * self.scale,
                               x1 * self.scale - 1, y1 * self.scale - 1)

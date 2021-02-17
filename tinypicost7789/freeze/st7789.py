@@ -22,16 +22,30 @@ class Display(object):
         utime.sleep_ms(50)
         self.cs(0)
         for command, data in (
-#            (b'\x01', None), # reset
-            (b'\x11', None), # wake
-            (b'\x3a', b'\x55'),  # format
-            (b'\x36', b'\xc8'),  # mad
-            (b'\x21', None), # invert
-            (b'\x13', None), # no partial
-            (b'\x29', None), # on
+            (b'\x36', b'\xc8'), # MADCTRL
+            (b'\x3a', b'\x05'), # COLMOD
+            (b'\xb2', # PORCTRL
+             b'\x0c\x0c\x00\x33\x33'),
+            (b'\xb7', b'\x35'), # GCTRL
+            (b'\xbb', b'\x28'), # VCOMS
+            (b'\xc0', b'\x2c'), # LCMCTRL
+            (b'\xc2', b'\x01\xff'), # VDVVRHEN
+            (b'\xc3', b'\x12'), # VRHS
+            (b'\xc4', b'\x20'), # VDVSET
+            (b'\xc6', b'\x0f'), # FRCTR2
+            (b'\xd0', b'\xa4\xa1'),
+            (b'\xe0', # PVGAMCTRL
+             b'\xd0\x04\x0d\x11\x13\x28\x3f\x54\x4c\x18\x0d\x0b\x1f\x23'),
+            (b'\xe1', # NVGAMCTRL
+             b'\xd0\x04\x0C\x11\x13\x2c\x3f\x44\x51\x2f\x1f\x1f\x20\x23'),
+            (b'\x2c', None),
+            (b'\x21', None), # no invert
+            (b'\x11', None), # display on
         ):
             self.write(command, data)
-            utime.sleep_ms(150)
+            utime.sleep_ms(10)
+        utime.sleep_ms(120)
+        self.write(b'\x29', None) # on
         self.cs(1)
         utime.sleep_ms(50)
 

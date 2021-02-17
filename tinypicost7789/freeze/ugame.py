@@ -8,13 +8,13 @@ import st7789
 import struct
 
 
-K_DOWN = 1 << 3
-K_LEFT = 1 << 4
-K_RIGHT = 1 << 5
-K_UP = 1 << 7
-K_O = 1 << 9 # button A
-K_X = 1 << 8 # button B
-K_Z = 1 << 6 # button C
+K_DOWN = 0x0800
+K_LEFT = 0x1000
+K_RIGHT = 0x2000
+K_UP = 0x8000
+K_O = 0x0001
+K_X = 0x0002
+K_Z = 0x0008
 
 
 class Audio:
@@ -38,7 +38,7 @@ class Buttons: # mpr121
         for register, value in (
             (0x80, b'\x63'), # reset
             (0x5e, b'\x00'), # stop mode, reset config
-            (0x2b, b'\x01\x01\x0e\x00\x01\x05\x01\x00\x00\x00\x00'),
+            (0x2b, b'\x01\x01\x10\x20\x01\x01\x10\x20\x01\x10\xff'),
             (0x5b, b'\x00\x10\x20'), # debounce, config1, config2
             (0x5e, b'\x8f'), # exit stop mode
         ):
@@ -50,7 +50,7 @@ class Buttons: # mpr121
         return mask
 
 
-spi = SPI(2, baudrate=40000000, sck=Pin(18), mosi=Pin(23))
+spi = SPI(2, baudrate=40_000_000, sck=Pin(18), mosi=Pin(23))
 display = st7789.Display(spi, Pin(4, Pin.OUT), Pin(14, Pin.OUT))
 display.clear()
 i2c = I2C(sda=Pin(21), scl=Pin(22))

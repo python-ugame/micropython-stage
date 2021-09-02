@@ -50,7 +50,7 @@ class Buttons: # mpr121
         return mask
 
 
-spi = SPI(2, baudrate=40_000_000, sck=Pin(18), mosi=Pin(23))
+spi = SPI(2, baudrate=80_000_000, sck=Pin(18), mosi=Pin(23))
 display = st7789.Display(spi, Pin(4, Pin.OUT), Pin(14, Pin.OUT))
 display.clear()
 i2c = I2C(sda=Pin(21), scl=Pin(22))

@@ -27,7 +27,7 @@ class Display(object):
             (b'\xb2', # PORCTRL
              b'\x0c\x0c\x00\x33\x33'),
             (b'\xb7', b'\x35'), # GCTRL
-            (b'\xbb', b'\x28'), # VCOMS
+            (b'\xbb', b'\x38'), # VCOMS
             (b'\xc0', b'\x2c'), # LCMCTRL
             (b'\xc2', b'\x01\xff'), # VDVVRHEN
             (b'\xc3', b'\x12'), # VRHS
